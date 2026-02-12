@@ -1,0 +1,16 @@
+@echo off
+echo Starting Laravel Quiz Application...
+echo.
+echo Starting Laravel server...
+start cmd /k "php artisan serve"
+timeout /t 2 /nobreak >nul
+echo Starting Vite dev server...
+start cmd /k "npm run dev"
+echo.
+echo Application is starting...
+echo Laravel: http://localhost:8000
+echo.
+echo Press any key to stop all servers...
+pause >nul
+taskkill /F /FI "WINDOWTITLE eq *artisan serve*"
+taskkill /F /FI "WINDOWTITLE eq *npm run dev*"
