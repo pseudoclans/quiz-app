@@ -11,7 +11,14 @@
     <div class="mesh-glow"></div>
 
     <div class="app-shell">
-        <aside class="sidebar glass">
+        <!-- Mobile Menu Toggle -->
+        <button id="mobileMenuToggle" class="icon-btn" style="position: fixed; top: 20px; left: 20px; z-index: 100; display: none;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 12h18M3 6h18M3 18h18" />
+            </svg>
+        </button>
+
+        <aside class="sidebar glass" id="mobileSidebar">
             <div class="brand">
                 <div class="brand-icon">Q</div>
                 <span>QuizApp</span>
@@ -155,14 +162,14 @@
                             <tbody>
                                 @foreach($quizzes as $quiz)
                                     <tr>
-                                        <td>
+                                        <td data-label="Title">
                                             <strong>{{ $quiz->title }}</strong>
                                             <div class="faint">Updated {{ $quiz->updated_at->diffForHumans() }}</div>
                                         </td>
-                                        <td>{{ $quiz->questions->groupBy('question_type')->count() }}</td>
-                                        <td>{{ $quiz->questions->count() }}</td>
-                                        <td><span class="status-pill">Active</span></td>
-                                        <td>
+                                        <td data-label="Sets">{{ $quiz->questions->groupBy('question_type')->count() }}</td>
+                                        <td data-label="Questions">{{ $quiz->questions->count() }}</td>
+                                        <td data-label="Status"><span class="status-pill">Active</span></td>
+                                        <td data-label="Actions">
                                             <a href="{{ route('quiz.take', $quiz->id) }}" class="btn btn-primary" style="font-size: 0.85rem; padding: 0.5rem 1rem;">Take Quiz</a>
                                             <a href="{{ route('quiz.show', $quiz->id) }}" class="btn btn-outline" style="font-size: 0.85rem; padding: 0.5rem 1rem;">View</a>
                                             <a href="{{ route('quiz.edit', $quiz->id) }}" class="btn btn-ghost" style="font-size: 0.85rem; padding: 0.5rem 1rem;">Edit</a>
@@ -190,5 +197,61 @@
     <a href="{{ route('quiz.create') }}" class="fab">
         <span>+ Create Quiz</span>
     </a>
+
+    <script>
+        // Mobile menu toggle
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const mobileSidebar = document.getElementById('mobileSidebar');
+
+        // Show menu toggle on mobile
+        if (window.innerWidth <= 1024) {
+            mobileMenuToggle.style.display = 'grid';
+        }
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth <= 1024) {
+                mobileMenuToggle.style.display = 'grid';
+            } else {
+                mobileMenuToggle.style.display = 'none';
+                mobileSidebar.style.transform = '';
+                mobileSidebar.style.position = '';
+            }
+        });
+
+        mobileMenuToggle.addEventListener('click', () => {
+            if (mobileSidebar.style.transform === 'translateX(0px)') {
+                mobileSidebar.style.transform = 'translateX(-100%)';
+            } else {
+                mobileSidebar.style.transform = 'translateX(0px)';
+                mobileSidebar.style.position = 'fixed';
+                mobileSidebar.style.zIndex = '99';
+            }
+        });
+
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 1024 && 
+                !mobileSidebar.contains(e.target) && 
+                !mobileMenuToggle.contains(e.target) &&
+                mobileSidebar.style.transform === 'translateX(0px)') {
+                mobileSidebar.style.transform = 'translateX(-100%)';
+            }
+        });
+    </script>
+
+    <style>
+        @media (max-width: 1024px) {
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                z-index: 99;
+                display: block;
+                background: var(--bg-elevated);
+            }
+        }
+    </style>
 </body>
 </html>

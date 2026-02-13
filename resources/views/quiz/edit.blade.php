@@ -316,6 +316,51 @@
             border-radius: 0.75rem;
             margin-bottom: 2rem;
         }
+
+        /* Mobile Responsive Styles for Edit Page */
+        @media (max-width: 768px) {
+            .edit-container {
+                padding: 0;
+            }
+
+            .header-form {
+                grid-template-columns: 1fr;
+            }
+
+            .quiz-header-edit {
+                padding: 1rem;
+            }
+
+            .question-item {
+                padding: 1rem;
+            }
+
+            .question-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .question-actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .answer-input-row {
+                flex-wrap: wrap;
+            }
+
+            .add-question-section {
+                padding: 1rem;
+            }
+
+            .btn-save, .btn-cancel {
+                flex: 1;
+            }
+        }
     </style>
 </head>
 <body class="page">

@@ -225,6 +225,59 @@
             border-color: rgba(59, 130, 246, 0.5);
             color: #3b82f6;
         }
+
+        /* Mobile Responsive Styles for History Page */
+        @media (max-width: 768px) {
+            .history-card {
+                padding: 1rem;
+            }
+
+            .history-header {
+                flex-direction: column;
+            }
+
+            .history-score {
+                text-align: left;
+                width: 100%;
+            }
+
+            .history-stats {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+
+            .stat-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .stat-label {
+                text-align: left;
+            }
+
+            .stat-value {
+                font-size: 1.1rem;
+            }
+
+            .history-actions {
+                flex-direction: column;
+            }
+
+            .btn-small {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .filters {
+                flex-direction: column;
+            }
+
+            .filter-input {
+                width: 100%;
+                max-width: 100% !important;
+            }
+        }
     </style>
 </head>
 <body class="page">
