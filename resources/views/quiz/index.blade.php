@@ -29,11 +29,11 @@
                     </svg>
                     Create Quiz
                 </a>
-                <a href="#" class="nav-item">
+                <a href="{{ route('quiz.history') }}" class="nav-item">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M9 17v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6m8 0V7a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14" />
                     </svg>
-                    Analytics
+                    History
                 </a>
                 <a href="#" class="nav-item">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -163,8 +163,9 @@
                                         <td>{{ $quiz->questions->count() }}</td>
                                         <td><span class="status-pill">Active</span></td>
                                         <td>
-                                            <a href="{{ route('quiz.show', $quiz->id) }}" class="btn btn-outline">Open</a>
-                                            <a href="{{ route('quiz.edit', $quiz->id) }}" class="btn btn-ghost">Edit</a>
+                                            <a href="{{ route('quiz.take', $quiz->id) }}" class="btn btn-primary" style="font-size: 0.85rem; padding: 0.5rem 1rem;">Take Quiz</a>
+                                            <a href="{{ route('quiz.show', $quiz->id) }}" class="btn btn-outline" style="font-size: 0.85rem; padding: 0.5rem 1rem;">View</a>
+                                            <a href="{{ route('quiz.edit', $quiz->id) }}" class="btn btn-ghost" style="font-size: 0.85rem; padding: 0.5rem 1rem;">Edit</a>
                                         </td>
                                     </tr>
                                 @endforeach

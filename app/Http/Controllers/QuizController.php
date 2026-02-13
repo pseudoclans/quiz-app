@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Quiz;
 use App\Models\Question;
 use App\Models\Answer;
+use App\Models\Attempt;
+use App\Models\Response;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -369,6 +371,272 @@ class QuizController extends Controller
                 'is_correct' => $correctAnswer === 'False',
             ]);
         }
+    }
+
+    // Quiz Taking Methods
+    public function take($id)
+    {
+        $quiz = Quiz::with('questions.answers')->findOrFail($id);
+        return view('quiz.take', ['quiz' => $quiz]);
+    }
+
+    public function submit(Request $request, $id)
+    {
+        $quiz = Quiz::with('questions.answers')->findOrFail($id);
+        
+        // Create attempt record
+        $attempt = Attempt::create([
+            'user_id' => auth()->id() ?? 1, // Default to user 1 if not authenticated
+            'quiz_id' => $quiz->id,
+            'total_questions' => $quiz->total_questions,
+        ]);
+
+        $score = 0;
+        $answers = [];
+
+        // Process each question
+        foreach ($quiz->questions as $question) {
+            $userAnswer = $request->input("question_{$question->id}");
+            $answers[$question->id] = $userAnswer;
+
+            if ($question->question_type === 'multiple_choice' || $question->question_type === 'true_false') {
+                // Find the selected answer
+                $selectedAnswer = Answer::find($userAnswer);
+                
+                if ($selectedAnswer && $selectedAnswer->is_correct) {
+                    $score++;
+                    $isCorrect = true;
+                } else {
+                    $isCorrect = false;
+                }
+
+                // Store response
+                Response::create([
+                    'attempt_id' => $attempt->id,
+                    'question_id' => $question->id,
+                    'answer_id' => $userAnswer,
+                    'is_correct' => $isCorrect,
+                ]);
+            } elseif ($question->question_type === 'identification') {
+                // For identification, compare user answer with correct answer (case-insensitive)
+                $correctAnswer = $question->answers->first(fn($a) => $a->is_correct);
+                $isCorrect = false;
+
+                if ($correctAnswer && $userAnswer) {
+                    // Simple match (can be enhanced with fuzzy matching)
+                    $isCorrect = strtolower(trim($userAnswer)) === strtolower(trim($correctAnswer->answer_text));
+                    if ($isCorrect) {
+                        $score++;
+                    }
+                }
+
+                // Store response
+                Response::create([
+                    'attempt_id' => $attempt->id,
+                    'question_id' => $question->id,
+                    'user_answer' => $userAnswer,
+                    'is_correct' => $isCorrect,
+                ]);
+            }
+        }
+
+        // Update attempt with final score
+        $attempt->update([
+            'score' => $score,
+            'answers' => $answers,
+        ]);
+
+        return redirect()->route('quiz.results', ['quiz' => $quiz->id, 'attempt' => $attempt->id])
+            ->with('success', "Quiz completed! You scored {$score}/{$quiz->total_questions}");
+    }
+
+    public function results($quizId, $attemptId)
+    {
+        $quiz = Quiz::with('questions.answers')->findOrFail($quizId);
+        $attempt = Attempt::with('responses.question.answers', 'responses.answer')->findOrFail($attemptId);
+
+        // Calculate percentage
+        $percentage = $quiz->total_questions > 0 
+            ? round(($attempt->score / $quiz->total_questions) * 100, 2)
+            : 0;
+
+        return view('quiz.results', [
+            'quiz' => $quiz,
+            'attempt' => $attempt,
+            'percentage' => $percentage,
+        ]);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $quiz = Quiz::findOrFail($id);
+        
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+        ]);
+
+        $quiz->update([
+            'title' => $request->title,
+            'description' => $request->description,
+        ]);
+
+        return redirect()->route('quiz.show', $quiz->id)
+            ->with('success', 'Quiz updated successfully!');
+    }
+
+    public function history()
+    {
+        // Get all attempts ordered by most recent
+        $attempts = Attempt::with('quiz', 'user')
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
+
+        return view('quiz.history', ['attempts' => $attempts]);
+    }
+
+    public function userAttempts($userId)
+    {
+        $user = \App\Models\User::findOrFail($userId);
+        $attempts = $user->attempts()
+            ->with('quiz')
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
+
+        return view('quiz.user-attempts', [
+            'user' => $user,
+            'attempts' => $attempts,
+        ]);
+    }
+
+    // Question Management Methods
+    public function addQuestion(Request $request, $quizId)
+    {
+        $quiz = Quiz::findOrFail($quizId);
+        
+        $request->validate([
+            'question_text' => 'required|string',
+            'question_type' => 'required|in:multiple_choice,identification,true_false',
+            'answers' => 'required|array',
+            'answers.*.text' => 'required|string',
+            'correct_answer' => 'required',
+        ]);
+
+        $nextNumber = $quiz->questions()->max('question_number') + 1;
+
+        $question = Question::create([
+            'quiz_id' => $quiz->id,
+            'question_text' => $request->question_text,
+            'question_type' => $request->question_type,
+            'question_number' => $nextNumber,
+        ]);
+
+        // Create answers
+        if ($request->question_type === 'multiple_choice') {
+            foreach ($request->answers as $index => $answer) {
+                Answer::create([
+                    'question_id' => $question->id,
+                    'answer_text' => $answer['text'],
+                    'answer_letter' => chr(97 + $index),
+                    'is_correct' => (string)$index === $request->correct_answer,
+                ]);
+            }
+        } elseif ($request->question_type === 'identification') {
+            Answer::create([
+                'question_id' => $question->id,
+                'answer_text' => $request->correct_answer,
+                'is_correct' => true,
+            ]);
+        } elseif ($request->question_type === 'true_false') {
+            Answer::create([
+                'question_id' => $question->id,
+                'answer_text' => 'True',
+                'is_correct' => $request->correct_answer === 'true',
+            ]);
+            Answer::create([
+                'question_id' => $question->id,
+                'answer_text' => 'False',
+                'is_correct' => $request->correct_answer === 'false',
+            ]);
+        }
+
+        $quiz->update(['total_questions' => $quiz->total_questions + 1]);
+
+        return redirect()->route('quiz.edit', $quiz->id)
+            ->with('success', 'Question added successfully!');
+    }
+
+    public function updateQuestion(Request $request, $quizId, $questionId)
+    {
+        $quiz = Quiz::findOrFail($quizId);
+        $question = Question::findOrFail($questionId);
+
+        $request->validate([
+            'question_text' => 'required|string',
+            'answers' => 'required|array',
+            'answers.*.text' => 'required|string',
+            'correct_answer' => 'required',
+        ]);
+
+        $question->update([
+            'question_text' => $request->question_text,
+        ]);
+
+        // Delete old answers
+        $question->answers()->delete();
+
+        // Create new answers
+        if ($question->question_type === 'multiple_choice') {
+            foreach ($request->answers as $index => $answer) {
+                Answer::create([
+                    'question_id' => $question->id,
+                    'answer_text' => $answer['text'],
+                    'answer_letter' => chr(97 + $index),
+                    'is_correct' => (string)$index === $request->correct_answer,
+                ]);
+            }
+        } elseif ($question->question_type === 'identification') {
+            Answer::create([
+                'question_id' => $question->id,
+                'answer_text' => $request->correct_answer,
+                'is_correct' => true,
+            ]);
+        } elseif ($question->question_type === 'true_false') {
+            Answer::create([
+                'question_id' => $question->id,
+                'answer_text' => 'True',
+                'is_correct' => $request->correct_answer === 'true',
+            ]);
+            Answer::create([
+                'question_id' => $question->id,
+                'answer_text' => 'False',
+                'is_correct' => $request->correct_answer === 'false',
+            ]);
+        }
+
+        return redirect()->route('quiz.edit', $quiz->id)
+            ->with('success', 'Question updated successfully!');
+    }
+
+    public function deleteQuestion($quizId, $questionId)
+    {
+        $quiz = Quiz::findOrFail($quizId);
+        $question = Question::findOrFail($questionId);
+
+        $question->answers()->delete();
+        $question->delete();
+
+        // Update total questions
+        $quiz->update(['total_questions' => $quiz->total_questions - 1]);
+
+        // Reorder question numbers
+        $questions = $quiz->questions()->orderBy('question_number')->get();
+        foreach ($questions as $index => $q) {
+            $q->update(['question_number' => $index + 1]);
+        }
+
+        return redirect()->route('quiz.edit', $quiz->id)
+            ->with('success', 'Question deleted successfully!');
     }
 
     // Remove the hardcoded answer key methods
