@@ -11,14 +11,15 @@
     <div class="mesh-glow"></div>
 
     <div class="app-shell">
-        <!-- Mobile Menu Toggle -->
-        <button id="mobileMenuToggle" class="icon-btn" style="position: fixed; top: 20px; left: 20px; z-index: 100; display: none;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M3 12h18M3 6h18M3 18h18" />
-            </svg>
-        </button>
+        <!-- Mobile Overlay -->
+        <div class="mobile-overlay" id="mobileOverlay"></div>
 
         <aside class="sidebar glass" id="mobileSidebar">
+            <button class="mobile-close-btn" id="mobileCloseBtn" aria-label="Close menu">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+            </button>
             <div class="brand">
                 <div class="brand-icon">Q</div>
                 <span>QuizApp</span>
@@ -54,6 +55,11 @@
         <section>
             <header class="topbar glass">
                 <div class="topbar-inner">
+                    <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 12h18M3 6h18M3 18h18" />
+                        </svg>
+                    </button>
                     <div class="search">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="11" cy="11" r="8" />
@@ -199,59 +205,32 @@
     </a>
 
     <script>
-        // Mobile menu toggle
-        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        // Mobile menu functionality
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileCloseBtn = document.getElementById('mobileCloseBtn');
         const mobileSidebar = document.getElementById('mobileSidebar');
+        const mobileOverlay = document.getElementById('mobileOverlay');
 
-        // Show menu toggle on mobile
-        if (window.innerWidth <= 1024) {
-            mobileMenuToggle.style.display = 'grid';
+        function openMobileMenu() {
+            mobileSidebar.classList.add('mobile-open');
+            mobileOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
         }
 
-        window.addEventListener('resize', () => {
-            if (window.innerWidth <= 1024) {
-                mobileMenuToggle.style.display = 'grid';
-            } else {
-                mobileMenuToggle.style.display = 'none';
-                mobileSidebar.style.transform = '';
-                mobileSidebar.style.position = '';
-            }
-        });
+        function closeMobileMenu() {
+            mobileSidebar.classList.remove('mobile-open');
+            mobileOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
 
-        mobileMenuToggle.addEventListener('click', () => {
-            if (mobileSidebar.style.transform === 'translateX(0px)') {
-                mobileSidebar.style.transform = 'translateX(-100%)';
-            } else {
-                mobileSidebar.style.transform = 'translateX(0px)';
-                mobileSidebar.style.position = 'fixed';
-                mobileSidebar.style.zIndex = '99';
-            }
-        });
+        mobileMenuBtn.addEventListener('click', openMobileMenu);
+        mobileCloseBtn.addEventListener('click', closeMobileMenu);
+        mobileOverlay.addEventListener('click', closeMobileMenu);
 
-        // Close menu when clicking outside
-        document.addEventListener('click', (e) => {
-            if (window.innerWidth <= 1024 && 
-                !mobileSidebar.contains(e.target) && 
-                !mobileMenuToggle.contains(e.target) &&
-                mobileSidebar.style.transform === 'translateX(0px)') {
-                mobileSidebar.style.transform = 'translateX(-100%)';
-            }
+        // Close menu when clicking a nav link
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', closeMobileMenu);
         });
     </script>
-
-    <style>
-        @media (max-width: 1024px) {
-            .sidebar {
-                position: fixed;
-                left: 0;
-                top: 0;
-                transform: translateX(-100%);
-                transition: transform 0.3s ease;
-                z-index: 99;
-                display: block;
-                background: var(--bg-elevated);
-            }
-        }
-    </style>
 </body>
 </html>

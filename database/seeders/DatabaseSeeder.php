@@ -24,6 +24,8 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             QuizSeeder::class,
+            Week2QuizSeeder::class,
+            Week3QuizSeeder::class,
         ]);
     }
 }

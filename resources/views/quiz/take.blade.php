@@ -161,8 +161,49 @@
     <div class="mesh-bg"></div>
     <div class="mesh-glow"></div>
 
+    <!-- Mobile Overlay -->
+    <div class="mobile-overlay" id="mobileOverlay"></div>
+
+    <!-- Mobile Sidebar -->
+    <aside class="sidebar glass" id="mobileSidebar" style="display: none;">
+        <button class="mobile-close-btn" id="mobileCloseBtn" aria-label="Close menu">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+        </button>
+        <div class="brand">
+            <div class="brand-icon">Q</div>
+            <span>QuizApp</span>
+        </div>
+        <nav class="nav-group">
+            <a href="{{ route('quiz.index') }}" class="nav-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                Dashboard
+            </a>
+            <a href="{{ route('quiz.create') }}" class="nav-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 4v16m8-8H4" />
+                </svg>
+                Create Quiz
+            </a>
+            <a href="{{ route('quiz.history') }}" class="nav-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 17v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6m8 0V7a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14" />
+                </svg>
+                History
+            </a>
+        </nav>
+    </aside>
+
     <header class="topbar glass">
         <div class="topbar-inner">
+            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 12h18M3 6h18M3 18h18" />
+                </svg>
+            </button>
             <a href="{{ route('quiz.index') }}" class="btn btn-ghost">← Back to Dashboard</a>
             <div class="page-title" style="font-size: 1.2rem;">{{ $quiz->title }}</div>
             <div class="topbar-actions">
@@ -272,6 +313,48 @@
     </main>
 
     <script>
+        // Mobile menu functionality
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileCloseBtn = document.getElementById('mobileCloseBtn');
+        const mobileSidebar = document.getElementById('mobileSidebar');
+        const mobileOverlay = document.getElementById('mobileOverlay');
+
+        if (mobileMenuBtn && mobileSidebar) {
+            // Show sidebar on mobile
+            if (window.innerWidth <= 1024) {
+                mobileSidebar.style.display = 'block';
+            }
+
+            window.addEventListener('resize', () => {
+                if (window.innerWidth <= 1024) {
+                    mobileSidebar.style.display = 'block';
+                } else {
+                    mobileSidebar.style.display = 'none';
+                }
+            });
+
+            function openMobileMenu() {
+                mobileSidebar.classList.add('mobile-open');
+                mobileOverlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeMobileMenu() {
+                mobileSidebar.classList.remove('mobile-open');
+                mobileOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+
+            mobileMenuBtn.addEventListener('click', openMobileMenu);
+            mobileCloseBtn.addEventListener('click', closeMobileMenu);
+            mobileOverlay.addEventListener('click', closeMobileMenu);
+
+            // Close menu when clicking a nav link
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', closeMobileMenu);
+            });
+        }
+
         // Update progress bar
         function updateProgress() {
             const form = document.getElementById('quizForm');

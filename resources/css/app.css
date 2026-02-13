@@ -1874,6 +1874,111 @@ body {
    MOBILE RESPONSIVE STYLES
    ============================ */
 
+/* Mobile Menu Button */
+.mobile-menu-btn {
+    display: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    margin-right: 12px;
+}
+
+.mobile-menu-btn:hover {
+    background: var(--surface-strong);
+    border-color: var(--primary);
+}
+
+.mobile-menu-btn:active {
+    transform: scale(0.95);
+}
+
+@media (max-width: 1024px) {
+    .mobile-menu-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+/* Mobile Close Button */
+.mobile-close-btn {
+    display: none;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    z-index: 1001;
+}
+
+.mobile-close-btn:hover {
+    background: rgba(239, 68, 68, 0.3);
+    border-color: #ef4444;
+}
+
+@media (max-width: 1024px) {
+    .mobile-close-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+/* Mobile Overlay */
+.mobile-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    z-index: 998;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.mobile-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+@media (max-width: 1024px) {
+    .mobile-overlay {
+        display: block;
+    }
+}
+
+/* Mobile Sidebar */
+@media (max-width: 1024px) {
+    .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100vh;
+        width: 280px;
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
+        z-index: 999;
+        display: block;
+        background: var(--bg-elevated);
+        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.5);
+        overflow-y: auto;
+    }
+
+    .sidebar.mobile-open {
+        transform: translateX(0);
+    }
+}
+
 /* Mobile Navigation */
 @media (max-width: 1024px) {
     .topbar {
@@ -1907,6 +2012,14 @@ body {
 
     #themeLabel {
         display: none;
+    }
+
+    .btn-ghost {
+        display: none;
+    }
+
+    .mobile-menu-btn {
+        margin-right: 0;
     }
 }
 
